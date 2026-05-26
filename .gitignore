@@ -5,7 +5,6 @@ x86/
 .vs/
 
 *.obj
-*.exe
 *.pdb
 *.ilk
 *.pch
