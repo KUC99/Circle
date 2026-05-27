@@ -307,13 +307,7 @@ void CCircleDlg::OnPaint()
 		drawCircle1(&dc,m_center.x,m_center.y,m_radius1);
 	}
 
-	if (m_bDrawLine)
-	{
-		dc.MoveTo(m_points[0]);
-		dc.LineTo(m_points[1]);
 
-		dc.LineTo(m_points[2]);
-	}
 }
 
 
@@ -340,7 +334,7 @@ void CCircleDlg::calculateCircle()
 			x2 * (y3 - y1) +
 			x3 * (y1 - y2));
 
-	if (abs(D) < 100)
+	if (abs(D) < 5000)
 	{
 		m_bDrawCircle = false;
 		m_bDrawLine = true;

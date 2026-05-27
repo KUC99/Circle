@@ -10,8 +10,8 @@
 #define IDC_RAIUS_POINT                 1000
 #define IDC_BTN_RANDOM                  1001
 #define IDC_EDT                         1002
+#define IDC_BTN_RANDOM2                 1003
 #define IDC_EDIT5                       1006
-#define IDC_BUTTON1                     1007
 #define IDC_RESET                       1007
 
 // Next default values for new objects
