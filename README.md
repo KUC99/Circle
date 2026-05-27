@@ -2,6 +2,7 @@
 (주) 그림 과제
 
 메인 화면 입니다.
+
 <img width="860" height="459" alt="image" src="https://github.com/user-attachments/assets/0c73bccc-2d0b-494d-b13a-14be0237568f" />
 
 반지름 란에 숫자를 입력하면 클릭 시 입력값에 해당하는 원을 찍을 수 있습니다.
