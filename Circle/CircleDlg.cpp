@@ -68,7 +68,11 @@ BEGIN_MESSAGE_MAP(CCircleDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_WM_LBUTTONDOWN()
-	ON_EN_CHANGE(IDC_EDIT1, &CCircleDlg::OnEnChangeEdit1)
+	ON_WM_MOUSEMOVE()
+	ON_WM_LBUTTONUP()
+	ON_BN_CLICKED(IDC_BTN_RANDOM, &CCircleDlg::OnBnClickedBtnRandom)
+	ON_EN_CHANGE(IDC_EDT, &CCircleDlg::OnEnChangeEdt)
+	ON_BN_CLICKED(IDC_RESET, &CCircleDlg::OnBnClickedReset)
 END_MESSAGE_MAP()
 
 
@@ -164,11 +168,15 @@ void CCircleDlg::drawPoint(CDC* pDC, int x, int y)
 
 // 사용자가 최소화된 창을 끄는 동안에 커서가 표시되도록 시스템에서
 //  이 함수를 호출합니다.
+
+
 HCURSOR CCircleDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 
 }
+
+
 
 void CCircleDlg::drawCircle(CDC* pDC,int cx,int cy,
 int radius)
@@ -188,6 +196,8 @@ int radius)
         }
     }
 }
+
+
 
 void CCircleDlg::drawCircle1(CDC* pDC, int cx, int cy, int radius)
 {
@@ -210,6 +220,8 @@ void CCircleDlg::drawCircle1(CDC* pDC, int cx, int cy, int radius)
 		}
 	}
 }
+
+
 //void CCircleDlg::OnLButtonDown(UINT nFlags, CPoint point)
 //{	m_points.push_back(point);
 //	CDialogEx::OnLButtonDown(nFlags, point);
@@ -218,26 +230,65 @@ void CCircleDlg::drawCircle1(CDC* pDC, int cx, int cy, int radius)
 
 void CCircleDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	CPaintDC dc(this);
-	m_startPoint = point;
-	m_endPoint = point;
+	// 점 추가
 	if (m_points.size() < 3)
 	{
 		m_points.push_back(point);
+
+		if (m_points.size() == 3)
+		{
+			calculateCircle();
+		}
+
 		Invalidate();
-		CDialogEx::OnLButtonDown(nFlags, point);
+
+		return;
 	}
 
-	if (m_points.size() == 3)
+	// 드래그 시작
+	const int radius = 10;
+
+	for (int i = 0; i < m_points.size(); i++)
 	{
-		calculateCircle();
-		return ;
+		int dx = point.x - m_points[i].x;
+		int dy = point.y - m_points[i].y;
 
+		if ((dx * dx + dy * dy) <= radius * radius)
+		{
+			m_dragging = true;
+			m_dragIndex = i;
+
+			SetCapture();
+
+			break;
+		}
 	}
 
+	CDialogEx::OnLButtonDown(nFlags, point);
+}
 
-	
+void CCircleDlg::OnMouseMove(UINT nFlags, CPoint point)
+{
+	if (m_dragging)
+	{
+		m_points[m_dragIndex] = point;
 
+		calculateCircle();
+
+		Invalidate();
+	}
+
+	CDialogEx::OnMouseMove(nFlags, point);
+}
+
+void CCircleDlg::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	m_dragging = false;
+	m_dragIndex = -1;
+
+	ReleaseCapture();
+
+	CDialogEx::OnLButtonUp(nFlags, point);
 }
 
 void CCircleDlg::OnPaint()
@@ -255,15 +306,19 @@ void CCircleDlg::OnPaint()
 	{
 		drawCircle1(&dc,m_center.x,m_center.y,m_radius1);
 	}
+
+	if (m_bDrawLine)
+	{
+		dc.MoveTo(m_points[0]);
+		dc.LineTo(m_points[1]);
+
+		dc.LineTo(m_points[2]);
+	}
 }
 
 
 
-void CCircleDlg::OnEnChangeEdit1()
-{
-	m_radius = GetDlgItemInt(IDC_EDIT1);
-	Invalidate();
-}
+
 
 void CCircleDlg::calculateCircle()
 {
@@ -285,8 +340,13 @@ void CCircleDlg::calculateCircle()
 			x2 * (y3 - y1) +
 			x3 * (y1 - y2));
 
-	if (D == 0)
+	if (abs(D) < 100)
+	{
+		m_bDrawCircle = false;
+		m_bDrawLine = true;
+
 		return;
+	}
 
 	double cx =
 		((x1 * x1 + y1 * y1) * (y2 - y3) +
@@ -307,4 +367,60 @@ void CCircleDlg::calculateCircle()
 	m_radius1 = (int)sqrt(dx * dx + dy * dy);
 
 	m_bDrawCircle = true;
+}
+
+
+
+void CCircleDlg::OnBnClickedBtnRandom()
+{
+	if (m_bRandomRunning)
+		return;
+
+	m_bRandomRunning = true;
+
+	AfxBeginThread(Thread, this);
+}
+
+UINT CCircleDlg::Thread(LPVOID pParam)
+{
+	CCircleDlg* pDlg = (CCircleDlg*)pParam;
+
+	for (int i = 0; i < 10; i++)
+	{
+		pDlg->m_points.clear();
+
+		for (int j = 0; j < 3; j++)
+		{
+			int x = rand() % 500 + 50;
+			int y = rand() % 400 + 50;
+
+			pDlg->m_points.push_back(CPoint(x, y));
+		}
+		pDlg->calculateCircle();
+		pDlg->Invalidate();
+
+		Sleep(500);
+	}
+
+	pDlg->m_bRandomRunning = false;
+
+	return 0;
+}
+
+
+
+void CCircleDlg::OnEnChangeEdt()
+{
+	m_radius = GetDlgItemInt(IDC_EDT);
+	Invalidate();
+}
+
+void CCircleDlg::OnBnClickedReset()
+{
+	m_points.clear();
+
+	m_dragging = false;
+	m_dragIndex = -1;
+	m_bDrawCircle = 0;
+	Invalidate();
 }

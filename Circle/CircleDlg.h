@@ -40,13 +40,25 @@ public:
 	int m_radius = 7;
 	int m_radius1 = 7;
 	bool m_bDrawCircle = false;
-	void OnLButtonDown(UINT nFlags, CPoint point);
 	void CCircleDlg::drawCircle(CDC* pDC,int cx,int cy,int radius);
 	void CCircleDlg::drawPoint(CDC* pDC, int x, int y);
 	void CCircleDlg::drawCircle1(CDC* pDC, int cx, int cy, int radius);
 	void CCircleDlg::calculateCircle();
 	CPoint m_startPoint;
-	CPoint m_endPoint;
+	bool m_dragging = false;
+	int m_dragIndex = -1;CPoint m_endPoint;
 
-	afx_msg void OnEnChangeEdit1();
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
+
+
+	afx_msg void CCircleDlg::OnBnClickedBtnRandom();
+	bool m_bRandomRunning = false;
+	static UINT Thread(LPVOID pParam);
+	afx_msg void CCircleDlg::OnEnChangeRadiusPoint();
+	afx_msg void CCircleDlg::OnEnChangeEdt();
+	afx_msg void CCircleDlg::OnBnClickedReset();
+
+	bool m_bDrawLine = false;
 };
